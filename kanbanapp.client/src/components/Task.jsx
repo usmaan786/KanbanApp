@@ -4,7 +4,6 @@ const Task = ({ task }) => {
     return (
         <div style={{ display: "flex", justifyContent: "space-between", padding: "10px", borderBottom: "1px solid #ccc" }}>
             <span>{task.title}</span>
-            <span>{task.status}</span>
         </div>
     );
 };
