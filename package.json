@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "@hello-pangea/dnd": "^17.0.0",
+    "axios": "^1.7.7",
     "prop-types": "^15.8.1"
   }
 }

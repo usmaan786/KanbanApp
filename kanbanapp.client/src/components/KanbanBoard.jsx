@@ -2,7 +2,7 @@ import { useState } from "react";
 import PropTypes from "prop-types";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
-const KanbanBoard = ({ tasks }) => {
+const KanbanBoard = ({ tasks =[] }) => {
     const [columns, setColumns] = useState({
         "To Do": tasks.filter((task) => task.status === "To Do"),
         "In Progress": tasks.filter((task) => task.status === "In Progress"),
@@ -57,7 +57,7 @@ const KanbanBoard = ({ tasks }) => {
                                     minHeight: "200px",
                                 }}
                             >
-                                <h3>{columnName}</h3>
+                                <h3 style={{ color: "black" }}>{columnName}</h3>
                                 {columnTasks.map((task, index) => (
                                     <Draggable
                                         key={task.id}
@@ -78,7 +78,7 @@ const KanbanBoard = ({ tasks }) => {
                                                     borderRadius: "5px",
                                                     boxShadow:
                                                         "0 2px 5px rgba(0, 0, 0, 0.1)",
-                                                    color: "#000", // Ensure text color is visible
+                                                    color: "#000",
                                                     fontSize: "14px",
                                                 }}
                                             >
