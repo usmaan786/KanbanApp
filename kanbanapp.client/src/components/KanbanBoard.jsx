@@ -1,13 +1,23 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
-const KanbanBoard = ({ tasks =[] }) => {
+const KanbanBoard = ({ tasks = [] }) => {
+   
     const [columns, setColumns] = useState({
-        "To Do": tasks.filter((task) => task.status === "To Do"),
-        "In Progress": tasks.filter((task) => task.status === "In Progress"),
-        "Done": tasks.filter((task) => task.status === "Done"),
+        "To Do": [],
+        "In Progress": [],
+        "Done": [],
     });
+
+    useEffect(() => {
+        setColumns({
+            "To Do": tasks.filter((task) => task.status === "To Do"),
+            "In Progress": tasks.filter((task) => task.status === "In Progress"),
+            "Done": tasks.filter((task) => task.status === "Done"),
+        });
+    }, [tasks]);
+
 
     const handleDragEnd = (result) => {
         const { source, destination } = result;
