@@ -45,6 +45,28 @@ const KanbanBoard = ({ tasks = [] }) => {
         });
     };
 
+    const handleDelete = async (taskId, columnName) => {
+        try {
+            const response = await fetch(`https://localhost:7155/api/Tasks/${taskId}`, {
+                method: "DELETE",
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to delete the task");
+            }
+
+            const updatedColumn = columns[columnName].filter((task) => task.id !== taskId);
+
+            setColumns({
+                ...columns,
+                [columnName]: updatedColumn,
+            });
+        } catch (error) {
+            console.error("Error deleting task:", error.message);
+            alert("Failed to delete the task. Please try again.");
+        }
+    };
+
     return (
         <DragDropContext onDragEnd={handleDragEnd}>
             <div style={{ display: "flex", gap: "20px", padding: "20px" }}>
@@ -90,9 +112,27 @@ const KanbanBoard = ({ tasks = [] }) => {
                                                         "0 2px 5px rgba(0, 0, 0, 0.1)",
                                                     color: "#000",
                                                     fontSize: "14px",
+                                                    display: "flex",
+                                                    justifyContent: "space-between",
+                                                    alignItems: "center",
                                                 }}
                                             >
-                                                {task.title}
+                                                <span>{task.title}</span>
+                                                <button
+                                                    onClick={() =>
+                                                        handleDelete(task.id, columnName)
+                                                    }
+                                                    style={{
+                                                        backgroundColor: "red",
+                                                        color: "white",
+                                                        border: "none",
+                                                        borderRadius: "3px",
+                                                        padding: "5px 10px",
+                                                        cursor: "pointer",
+                                                    }}
+                                                >
+                                                    Delete
+                                                </button>
                                             </div>
                                         )}
                                     </Draggable>
