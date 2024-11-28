@@ -19,7 +19,7 @@ const KanbanBoard = ({ tasks = [] }) => {
     }, [tasks]);
 
 
-    const handleDragEnd = (result) => {
+    const handleDragEnd = async (result) => {
         const { source, destination } = result;
 
         if (!destination) return;
@@ -35,14 +35,32 @@ const KanbanBoard = ({ tasks = [] }) => {
 
         const [movedTask] = sourceList.splice(source.index, 1);
         destinationList.splice(destination.index, 0, movedTask);
-
         movedTask.status = destination.droppableId;
 
-        setColumns({
-            ...columns,
-            [source.droppableId]: sourceList,
-            [destination.droppableId]: destinationList,
-        });
+        try {
+            const response = await fetch(`https://localhost:7155/api/Tasks/${movedTask.id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(movedTask),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to update task status");
+            }
+
+            setColumns({
+                ...columns,
+                [source.droppableId]: sourceList,
+                [destination.droppableId]: destinationList,
+            });
+        }
+        catch (error) {
+            console.error("Error updating task:", error.message);
+            alert("Failed to update the task. Please try again.");
+        }
+
     };
 
     const handleDelete = async (taskId, columnName) => {
