@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import './App.css';
 import KanbanBoard from './components/KanbanBoard';
+import Login from './components/Login';
 
 function App() {
 
@@ -13,9 +14,10 @@ function App() {
     //    { id: 6, title: "Deploy app", status: "Done" },
     //];
 
-   const [tasks, setTasks] = useState([]);
+    const [tasks, setTasks] = useState([]);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-   useEffect(() => {
+   /*useEffect(() => {
         fetch("https://localhost:7155/api/Tasks")
             .then((response) => response.json())
             .then((jsonResponse) => {
@@ -25,13 +27,48 @@ function App() {
                 }
                 return setTasks(jsonResponse);
             })
+    }, []);*/
+    useEffect(() => {
+        const token = localStorage.getItem("authToken");
+        if (token) {
+            setIsLoggedIn(true);
+            fetchTasks(token);
+        }
     }, []);
+
+    const fetchTasks = async (token) => {
+        try {
+            const response = await fetch("https://localhost:7155/api/Tasks", {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch tasks");
+            }
+
+            const jsonResponse = await response.json();
+            setTasks(jsonResponse || []);
+        }
+        catch (error) {
+            console.error("Error fetching tasks:", error);
+            setTasks([]);
+        }
+    };
 
 
     return (
         <div>
             <h1 id="tableLabel">Kanban Web</h1>
-            <KanbanBoard tasks={tasks} />
+            {!isLoggedIn ? (
+                <Login onLoginSuccess={() => {
+                    setIsLoggedIn(true);
+                    fetchTasks(localStorage.getItem("authToken"));
+                }} />
+            ) : (
+                <KanbanBoard tasks={tasks} />
+            )}
         </div>
     );
     

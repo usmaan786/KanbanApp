@@ -3,6 +3,7 @@ using KanbanApp.Server.Data;
 using KanbanApp.Server.Models;
 using Microsoft.EntityFrameworkCore;
 using TaskModel = KanbanApp.Server.Models.Task;
+using Microsoft.AspNetCore.Authorization;
 
 
 namespace KanbanApp.Server.Controllers
@@ -18,6 +19,7 @@ namespace KanbanApp.Server.Controllers
             _context = context;
         }
 
+        [Authorize]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TaskModel>>> GetTasks()
         {
