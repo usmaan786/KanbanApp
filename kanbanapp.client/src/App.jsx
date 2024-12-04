@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import './App.css';
 import KanbanBoard from './components/KanbanBoard';
 import Login from './components/Login';
+import Register from './components/Register';
+//import Logout from './components/Logout';
 
 function App() {
 
@@ -57,22 +59,33 @@ function App() {
         }
     };
 
+    const handleLogout = () => {
+        localStorage.removeItem("authToken");
+        setIsLoggedIn(false);
+        setTasks([]);
+    };
 
     return (
         <div>
             <h1 id="tableLabel">Kanban Web</h1>
             {!isLoggedIn ? (
-                <Login onLoginSuccess={() => {
-                    setIsLoggedIn(true);
-                    fetchTasks(localStorage.getItem("authToken"));
-                }} />
+                <>
+                    <Login
+                        onLoginSuccess={() => {
+                            setIsLoggedIn(true);
+                            fetchTasks(localStorage.getItem("authToken"));
+                        }}
+                    />
+                    <Register />
+                </>
             ) : (
-                <KanbanBoard tasks={tasks} />
+                <>
+                    <button onClick={handleLogout}>Logout</button>
+                    <KanbanBoard tasks={tasks} />
+                </>
             )}
         </div>
     );
-    
-    
 }
 
 export default App;
