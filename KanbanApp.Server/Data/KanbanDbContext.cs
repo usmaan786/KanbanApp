@@ -1,23 +1,23 @@
 ﻿using KanbanApp.Server.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace KanbanApp.Server.Data
 {
-    public class KanbanDbContext : DbContext
+    public class KanbanDbContext : IdentityDbContext<IdentityUser>
     {
         public KanbanDbContext(DbContextOptions<KanbanDbContext> options) : base(options) { }
-        public DbSet<Models.Task> Tasks { get; set; }
-        public DbSet<User> Users { get; set; }
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        public DbSet<KanbanTask> Tasks { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder builder)
         {
-            modelBuilder.Entity<Models.Task>()
-                .HasOne(t => t.User)
-                .WithMany(u => u.Tasks)
-                .HasForeignKey(t => t.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+            base.OnModelCreating(builder);
 
-            base.OnModelCreating(modelBuilder);
+            builder.Entity<KanbanTask>()
+                .Property(t => t.UserId)
+                .IsRequired(false); // UserId is not required for validation
         }
     }
 }

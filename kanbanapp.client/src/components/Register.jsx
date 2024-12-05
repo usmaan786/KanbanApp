@@ -2,6 +2,7 @@ import { useState } from "react";
 
 const Register = () => {
     const [username, setUsername] = useState("");
+    const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
     const handleRegister = async () => {
@@ -9,14 +10,13 @@ const Register = () => {
             const response = await fetch("https://localhost:7155/api/auth/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, password }),
+                body: JSON.stringify({ username, email, password }),
             });
 
             if (response.ok) {
-                alert("Registration successful. Please log in.");
+                alert("Registration successful. You can now log in.");
             } else {
-                const error = await response.text();
-                alert(`Error: ${error}`);
+                alert("Registration failed.");
             }
         } catch (error) {
             console.error("Error during registration:", error);
@@ -25,12 +25,17 @@ const Register = () => {
 
     return (
         <div>
-            <h2>Register</h2>
             <input
                 type="text"
                 placeholder="Username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
+            />
+            <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
             />
             <input
                 type="password"

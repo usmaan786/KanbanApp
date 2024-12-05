@@ -10,12 +10,11 @@ const Login = ({ onLoginSuccess }) => {
             const response = await fetch("https://localhost:7155/api/auth/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
+                credentials: "include",
                 body: JSON.stringify({ username, password }),
             });
 
             if (response.ok) {
-                const { Token } = await response.json();
-                localStorage.setItem("authToken", Token);
                 alert("Login successful");
                 onLoginSuccess();
             } else {

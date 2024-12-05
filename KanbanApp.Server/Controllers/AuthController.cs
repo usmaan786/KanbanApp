@@ -1,12 +1,7 @@
-﻿using Azure.Identity;
-using KanbanApp.Server.Data;
-using KanbanApp.Server.Models;
+﻿using KanbanApp.Server.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 
 namespace KanbanApp.Server.Controllers
 {
@@ -14,98 +9,74 @@ namespace KanbanApp.Server.Controllers
     [Route("api/auth")]
     public class AuthController : ControllerBase
     {
-        private readonly IConfiguration _configuration;
-        private readonly KanbanDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
+        private readonly SignInManager<IdentityUser> _signInManager;
 
-        public AuthController(IConfiguration configuration, KanbanDbContext context)
+        public AuthController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager)
         {
-            _configuration = configuration;
-            _context = context;
+            _userManager = userManager;
+            _signInManager = signInManager;
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] AccountModel model)
+        public async Task<IActionResult> Register([FromBody] RegisterModel model)
         {
-            if(string.IsNullOrEmpty(model.Username) || string.IsNullOrEmpty(model.Password))
+            if (!ModelState.IsValid) return BadRequest("Invalid registration details.");
+
+            var user = new IdentityUser { UserName = model.Username, Email = model.Email };
+            var result = await _userManager.CreateAsync(user, model.Password);
+
+            if (result.Succeeded)
             {
-                return BadRequest("Username and password are required");
+                await _signInManager.SignInAsync(user, isPersistent: false); // Log in after registration
+                return Ok("Registration successful.");
             }
 
-            var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Username == model.Username);
-            if (existingUser != null)
-            {
-                return Conflict("Username is already taken");
-            }
-
-            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(model.Password);
-
-            var user = new User
-            {
-                Username = model.Username,
-                Password = hashedPassword
-            };
-
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-
-            return Ok("Registration Successful");
+            return BadRequest(result.Errors);
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] AccountModel model)
+        public async Task<IActionResult> Login([FromBody] LoginModel model)
         {
-            /*if(model.Username == "test" && model.Password=="password")
-            {
-                var token = GenerateJwtToken(model.Username);
-                return Ok(new { Token = token });
-            }
-            return Unauthorized();*/
+            if (!ModelState.IsValid) return BadRequest("Invalid login attempt.");
 
-            if(string.IsNullOrEmpty(model.Username) || string.IsNullOrEmpty(model.Password))
+            var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, isPersistent: false, lockoutOnFailure: false);
+
+            if (result.Succeeded)
             {
-                return BadRequest("Username and password are required");
+                return Ok("Login successful.");
             }
 
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == model.Username);
-            if(user == null)
-            {
-                return Unauthorized("Invalid username or password");
-            }
-
-            var isPasswordValid = BCrypt.Net.BCrypt.Verify(model.Password, user.Password);
-            if (!isPasswordValid)
-            {
-                return Unauthorized("Invalid username or password");
-            }
-
-            var token = GenerateJwtToken(user.Username);
-
-            return Ok(new {Token = token});
+            return Unauthorized("Invalid username or password.");
         }
 
-        private string GenerateJwtToken(string username)
+        [HttpPost("logout")]
+        [Authorize]
+        public async Task<IActionResult> Logout()
         {
-            var claims = new[]
-            {
-            new Claim(JwtRegisteredClaimNames.Sub, username),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            };
+            await _signInManager.SignOutAsync();
+            return Ok("Logout successful.");
+        }
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
-            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
-                claims: claims,
-                expires: DateTime.UtcNow.AddHours(1),
-                signingCredentials: credentials);
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
+        [HttpGet("me")]
+        [Authorize]
+        public IActionResult GetCurrentUser()
+        {
+            var userId = _userManager.GetUserId(User); 
+            var username = User.Identity.Name;    
+            return Ok(new { userId, username });
         }
     }
 
-    public class AccountModel
+    // Models for login and registration
+    public class RegisterModel
+    {
+        public string Username { get; set; }
+        public string Email { get; set; }
+        public string Password { get; set; }
+    }
+
+    public class LoginModel
     {
         public string Username { get; set; }
         public string Password { get; set; }

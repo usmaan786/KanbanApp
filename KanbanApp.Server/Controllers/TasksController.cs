@@ -2,55 +2,89 @@
 using KanbanApp.Server.Data;
 using KanbanApp.Server.Models;
 using Microsoft.EntityFrameworkCore;
-using TaskModel = KanbanApp.Server.Models.Task;
 using Microsoft.AspNetCore.Authorization;
-
+using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
 
 namespace KanbanApp.Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class TasksController : Controller
+    public class TasksController : ControllerBase
     {
         private readonly KanbanDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public TasksController(KanbanDbContext context)
+        public TasksController(KanbanDbContext context, UserManager<IdentityUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         [Authorize]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TaskModel>>> GetTasks()
+        public async Task<IActionResult> GetTasks()
         {
-            return await _context.Tasks.ToListAsync();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                return Unauthorized("User not authenticated.");
+            }
+
+            var tasks = await _context.Tasks.Where(t => t.UserId == userId).ToListAsync();
+            return Ok(tasks);
         }
 
+        [Authorize]
         [HttpGet("{id}")]
-        public async Task<ActionResult<TaskModel>> GetTask(int id)
+        public async Task<ActionResult<KanbanTask>> GetTask(int id)
         {
             var task = await _context.Tasks.FindAsync(id);
             if (task == null)
             {
                 return NotFound();
             }
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (task.UserId != userId)
+            {
+                return Forbid();
+            }
+
             return task;
         }
 
+        [Authorize]
         [HttpPost]
-        public async Task<ActionResult<TaskModel>> CreateTask(TaskModel task)
+        public async Task<ActionResult<KanbanTask>> CreateTask(KanbanTask task)
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                return Unauthorized("User not authenticated.");
+            }
+
+            task.UserId = userId;
+
             _context.Tasks.Add(task);
             await _context.SaveChangesAsync();
+
             return CreatedAtAction(nameof(GetTask), new { id = task.Id }, task);
         }
 
+        [Authorize]
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateTask(int id, TaskModel task)
+        public async Task<IActionResult> UpdateTask(int id, KanbanTask task)
         {
             if (id != task.Id)
             {
                 return BadRequest();
+            }
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (task.UserId != userId)
+            {
+                return Forbid();
             }
 
             _context.Entry(task).State = EntityState.Modified;
@@ -74,6 +108,7 @@ namespace KanbanApp.Server.Controllers
             return NoContent();
         }
 
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTask(int id)
         {
@@ -81,6 +116,12 @@ namespace KanbanApp.Server.Controllers
             if (task == null)
             {
                 return NotFound();
+            }
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (task.UserId != userId)
+            {
+                return Forbid();
             }
 
             _context.Tasks.Remove(task);

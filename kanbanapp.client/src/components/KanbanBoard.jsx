@@ -46,6 +46,7 @@ const KanbanBoard = ({ tasks = [] }) => {
                 headers: {
                     "Content-Type": "application/json",
                 },
+                credentials: "include",
                 body: JSON.stringify(movedTask),
             });
 
@@ -58,18 +59,17 @@ const KanbanBoard = ({ tasks = [] }) => {
                 [source.droppableId]: sourceList,
                 [destination.droppableId]: destinationList,
             });
-        }
-        catch (error) {
+        } catch (error) {
             console.error("Error updating task:", error.message);
             alert("Failed to update the task. Please try again.");
         }
-
     };
 
     const handleDelete = async (taskId, columnName) => {
         try {
             const response = await fetch(`https://localhost:7155/api/Tasks/${taskId}`, {
                 method: "DELETE",
+                credentials: "include",
             });
 
             if (!response.ok) {
@@ -78,10 +78,10 @@ const KanbanBoard = ({ tasks = [] }) => {
 
             const updatedColumn = columns[columnName].filter((task) => task.id !== taskId);
 
-            setColumns({
-                ...columns,
+            setColumns((prevColumns) => ({
+                ...prevColumns,
                 [columnName]: updatedColumn,
-            });
+            }));
         } catch (error) {
             console.error("Error deleting task:", error.message);
             alert("Failed to delete the task. Please try again.");
@@ -97,22 +97,24 @@ const KanbanBoard = ({ tasks = [] }) => {
                 headers: {
                     "Content-Type": "application/json",
                 },
+                credentials: "include",
                 body: JSON.stringify(newTask),
             });
 
-            if (!response.ok) throw new Error("Failed to create task");
+            if (!response.ok) {
+                throw new Error("Failed to create task");
+            }
 
             const createdTask = await response.json();
 
-            setColumns({
-                ...columns,
-                [newTask.status]: [...columns[newTask.status], createdTask],
-            });
+            setColumns((prevColumns) => ({
+                ...prevColumns,
+                [newTask.status]: [...prevColumns[newTask.status], createdTask],
+            }));
 
             setNewTask({ title: "", status: "To Do" });
             setShowForm(false);
-        }
-        catch (error) {
+        } catch (error) {
             console.error("Error creating task:", error);
             alert("Failed to create task. Please try again.");
         }

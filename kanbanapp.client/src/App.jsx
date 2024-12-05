@@ -3,66 +3,55 @@ import './App.css';
 import KanbanBoard from './components/KanbanBoard';
 import Login from './components/Login';
 import Register from './components/Register';
-//import Logout from './components/Logout';
 
 function App() {
-
-    //const tasks = [
-    //    { id: 1, title: "Create React component", status: "To Do" },
-    //    { id: 2, title: "Connect to API", status: "In Progress" },
-    //    { id: 3, title: "Test drag-and-drop", status: "Done" },
-    //    { id: 4, title: "Set up Kanban layout", status: "To Do" },
-    //    { id: 5, title: "Style the board", status: "In Progress" },
-    //    { id: 6, title: "Deploy app", status: "Done" },
-    //];
-
     const [tasks, setTasks] = useState([]);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-   /*useEffect(() => {
-        fetch("https://localhost:7155/api/Tasks")
-            .then((response) => response.json())
-            .then((jsonResponse) => {
-                console.log(jsonResponse);
-;                if (!jsonResponse) {
-                    return setTasks([]);
-                }
-                return setTasks(jsonResponse);
-            })
-    }, []);*/
     useEffect(() => {
-        const token = localStorage.getItem("authToken");
-        if (token) {
-            setIsLoggedIn(true);
-            fetchTasks(token);
-        }
+        checkAuthentication();
     }, []);
 
-    const fetchTasks = async (token) => {
+    const checkAuthentication = async () => {
         try {
             const response = await fetch("https://localhost:7155/api/Tasks", {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
+                method: "GET",
+                credentials: "include",
             });
 
-            if (!response.ok) {
-                throw new Error("Failed to fetch tasks");
+            if (response.ok) {
+                setIsLoggedIn(true);
+                const jsonResponse = await response.json();
+                setTasks(jsonResponse || []);
+            } else {
+                setIsLoggedIn(false);
+                setTasks([]);
             }
-
-            const jsonResponse = await response.json();
-            setTasks(jsonResponse || []);
-        }
-        catch (error) {
-            console.error("Error fetching tasks:", error);
+        } catch (error) {
+            console.error("Error checking authentication:", error);
+            setIsLoggedIn(false);
             setTasks([]);
         }
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem("authToken");
-        setIsLoggedIn(false);
-        setTasks([]);
+    // Handle user logout
+    const handleLogout = async () => {
+        try {
+            const response = await fetch("https://localhost:7155/api/auth/logout", {
+                method: "POST",
+                credentials: "include",
+            });
+
+            if (response.ok) {
+                setIsLoggedIn(false);
+                setTasks([]);
+                alert("Logout successful");
+            } else {
+                console.error("Error during logout:", response.statusText);
+            }
+        } catch (error) {
+            console.error("Error during logout:", error);
+        }
     };
 
     return (
@@ -70,12 +59,7 @@ function App() {
             <h1 id="tableLabel">Kanban Web</h1>
             {!isLoggedIn ? (
                 <>
-                    <Login
-                        onLoginSuccess={() => {
-                            setIsLoggedIn(true);
-                            fetchTasks(localStorage.getItem("authToken"));
-                        }}
-                    />
+                    <Login onLoginSuccess={checkAuthentication} />
                     <Register />
                 </>
             ) : (
