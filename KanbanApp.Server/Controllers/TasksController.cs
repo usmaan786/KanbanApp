@@ -56,7 +56,7 @@ namespace KanbanApp.Server.Controllers
 
         [Authorize]
         [HttpPost]
-        public async Task<ActionResult<KanbanTask>> CreateTask(KanbanTask task)
+        public async Task<ActionResult<KanbanTask>> CreateTask([FromBody] CreateTaskDto dto)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null)
@@ -64,7 +64,12 @@ namespace KanbanApp.Server.Controllers
                 return Unauthorized("User not authenticated.");
             }
 
-            task.UserId = userId;
+            var task = new KanbanTask
+            {
+                Title = dto.Title,
+                Status = dto.Status,
+                UserId = userId
+            };
 
             _context.Tasks.Add(task);
             await _context.SaveChangesAsync();
@@ -129,5 +134,11 @@ namespace KanbanApp.Server.Controllers
 
             return NoContent();
         }
+    }
+
+    public class CreateTaskDto
+    {
+        public string Title { get; set; }
+        public string Status { get; set; }
     }
 }

@@ -9,6 +9,5 @@ namespace KanbanApp.Server.Models
         public string Status { get; set; }
         public string UserId { get; set; }
 
-        //public IdentityUser User { get; set; }
     }
 }

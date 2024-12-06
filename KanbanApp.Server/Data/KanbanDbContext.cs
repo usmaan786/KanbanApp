@@ -17,7 +17,7 @@ namespace KanbanApp.Server.Data
 
             builder.Entity<KanbanTask>()
                 .Property(t => t.UserId)
-                .IsRequired(false); // UserId is not required for validation
+                .IsRequired(false); 
         }
     }
 }

@@ -28,7 +28,7 @@ namespace KanbanApp.Server.Controllers
 
             if (result.Succeeded)
             {
-                await _signInManager.SignInAsync(user, isPersistent: false); // Log in after registration
+                await _signInManager.SignInAsync(user, isPersistent: false);
                 return Ok("Registration successful.");
             }
 
@@ -58,22 +58,11 @@ namespace KanbanApp.Server.Controllers
             return Ok("Logout successful.");
         }
 
-        [HttpGet("me")]
-        [Authorize]
-        public IActionResult GetCurrentUser()
-        {
-            var userId = _userManager.GetUserId(User); 
-            var username = User.Identity.Name;    
-            return Ok(new { userId, username });
-        }
     }
 
-    // Models for login and registration
-    public class RegisterModel
+    public class RegisterModel : LoginModel
     {
-        public string Username { get; set; }
         public string Email { get; set; }
-        public string Password { get; set; }
     }
 
     public class LoginModel
