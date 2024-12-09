@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import './kanban.css';
 
 const KanbanBoard = ({ tasks = [] }) => {
    
@@ -217,7 +218,7 @@ const KanbanBoard = ({ tasks = [] }) => {
             )}
 
             <DragDropContext onDragEnd={handleDragEnd}>
-                <div style={{ display: "flex", gap: "20px" }}>
+                <div className="board">
                     {Object.entries(columns).map(([columnName, columnTasks]) => (
                         <Droppable droppableId={columnName} key={columnName}>
                             {(provided) => (
@@ -266,20 +267,12 @@ const KanbanBoard = ({ tasks = [] }) => {
                                                     }}
                                                 >
                                                     <span>{task.title}</span>
-                                                    <button
+                                                    <button className="deleteBtn"
                                                         onClick={() =>
                                                             handleDelete(task.id, columnName)
                                                         }
-                                                        style={{
-                                                            backgroundColor: "red",
-                                                            color: "white",
-                                                            border: "none",
-                                                            borderRadius: "3px",
-                                                            padding: "5px 10px",
-                                                            cursor: "pointer",
-                                                        }}
                                                     >
-                                                        Delete
+                                                       
                                                     </button>
                                                 </div>
                                             )}

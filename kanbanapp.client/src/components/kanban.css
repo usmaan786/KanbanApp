@@ -1,0 +1,18 @@
+.deleteBtn {
+    background-color: red;
+    background: url('../assets/ic_action_trash.png') no-repeat center center;
+    background-size: contain;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    padding: 5px 10px;
+    cursor: pointer;
+    height: 24px;
+    width: 24px;
+}
+
+.board {
+    width:500px;
+    display: flex;
+    gap: 20px;
+}
