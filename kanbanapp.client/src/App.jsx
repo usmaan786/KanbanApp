@@ -56,17 +56,18 @@ function App() {
 
     return (
         <div>
-            <h1 id="tableLabel">Kanban Web</h1>
+            <div className="navbar">
+                <h1 id="tableLabel">Kanban Web</h1>
+                {isLoggedIn && <button onClick={handleLogout} className="logoutBtn">Logout</button>}
+            </div>
+
             {!isLoggedIn ? (
                 <>
                     <Login onLoginSuccess={checkAuthentication} />
                     <Register />
                 </>
             ) : (
-                <>
-                    <button onClick={handleLogout}>Logout</button>
-                    <KanbanBoard tasks={tasks} />
-                </>
+                <KanbanBoard tasks={tasks} />
             )}
         </div>
     );

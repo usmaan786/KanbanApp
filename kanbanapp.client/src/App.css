@@ -12,4 +12,51 @@ th, td {
 
 h1{
     margin-bottom:250px;
+    opacity: 0;
+    transform: translateY(-20px);
+    animation: fadeDown 1s ease-out forwards;
+    position: center;
+}
+
+@keyframes fadeDown{
+    0%{
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    100%{
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#tableLabel {
+    margin: 5%;
+    font-size: 24px;
+}
+
+.logoutBtn{
+    position:absolute;
+    right:20px;
+    background-color: transparent;
+    border: 1px solid red;
+    color: #fff;
+    border-radius: 5px;
+    padding: 8px 15px;
+    cursor: pointer;
+    font-size: 16px;
+    
+}
+
+.logoutBtn:hover {
+    background-color: #0056b3; 
+}
+
+.navbar{
+    position: relative;
+    bottom: 100px;
+    display: flex;
+    justify-content: center;
+    align-items:center;
+    padding: 10px 20px;
+    border-bottom: 1px solid #ddd;
 }
